@@ -57,10 +57,3 @@ def hello_pubsub(event, context):
         name = 'World'
     print('Hello {}!'.format(name))
     print('Temperature : {}'.format(temperature))
-
-
-
-
-
-
-
