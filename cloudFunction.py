@@ -1,36 +1,14 @@
 import base64
+import json
 from google.cloud import iot_v1
 
 
-"""
-Python3 implementation of configuration update 
-"""
 def device_config(config):
     client = iot_v1.DeviceManagerClient()
-    name = client.device_path('<ProjectID>', '<Region>',  '<Registry>', '<Device_id>')
+    name = client.device_path(<PROJECT_ID>,
+                              <REGION>,  <REGISTRY>, <DEVICCE_ID>)
     binary_data = bytes(config, 'utf-8')
     client.modify_cloud_to_device_config(name, binary_data)
-
-
-"""
-I am getting 'temperature' data from a DHT11 sensor hooked up to Raspberry Pi. That data is compared 
-against float(19.0), and correspondingly LED is turned on/off on ESP32.
-My test data is as follows:
-
-For turning ON the LED
-{
-    "data":"Saikumar",
-    "temperature":"25.0" # For turning on the LED
-}
-
-For turning OFF the LED
-{
-    "data":"Saikumar",
-    "temperature":"18.0" # For turning off the LED
-}
-
-And from Raspberry Pi, we are getting similar data
-"""
 
 
 def hello_pubsub(event, context):
@@ -44,16 +22,22 @@ def hello_pubsub(event, context):
          `timestamp` field contains the publish time.
     """
 
-    print("""This Function was triggered by messageId {} published at {}
-    """.format(context.event_id, context.timestamp))
+    print("""This Function was triggered by messageId {} published at {}""".format(
+        context.event_id, context.timestamp))
+
+#    name = str(base64.b64decode(event).decode('utf-8'))
     if 'data' in event:
-        name = base64.b64decode(event['data']).decode('utf-8')
-        temperature = base64.b64decode(event['temperature']).decode('utf-8')
-        if float(temperature) > 19.0:
+        data = event['data']
+        data = base64.b64decode(data)
+        data = data.decode('utf-8')
+        data = json.loads(data)
+        
+        temperature = float(data['temperature'])
+        
+        if temperature > 25.0:
             device_config("ledon")
         else:
             device_config("ledoff")
+            
     else:
-        name = 'World'
-    print('Hello {}!'.format(name))
-    print('Temperature : {}'.format(temperature))
+        print("Data is not present!")
